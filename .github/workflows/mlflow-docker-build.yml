@@ -1,0 +1,43 @@
+name: Build and Push MLflow Model Docker Image
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  MLFLOW_TRACKING_URI: http://13.219.73.255:5000/
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Install MLflow
+      run: |
+        pip install mlflow
+
+    - name: Download MLflow Model
+      run: |
+        mlflow models download \
+          -m "models:/tracking-quickstart/1" \
+          -d ./model
+
+    - name: Build Docker Image
+      run: |
+        mlflow models build-docker \
+          -m ./model \
+          -n ghcr.io/${{ github.repository_owner }}/tracking-quickstart:latest
+
+    - name: Log in to GitHub Container Registry
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+    - name: Push Docker Image
+      run: docker push ghcr.io/${{ github.repository_owner }}/tracking-quickstart:latest
