@@ -21,14 +21,13 @@ jobs:
         python-version: '3.10'
 
     - name: Install MLflow
-      run: |
-        pip install mlflow
+      run: pip install mlflow
 
-    - name: Download MLflow Model
+    - name: Download MLflow Model Artifacts
       run: |
-        mlflow models download \
-          -m "models:/tracking-quickstart/1" \
-          -d ./model
+        mlflow artifacts download \
+          --artifact-uri models:/tracking-quickstart/1 \
+          --dst-path ./model
 
     - name: Build Docker Image
       run: |
